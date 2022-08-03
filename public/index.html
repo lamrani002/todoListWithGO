@@ -1,0 +1,283 @@
+<!-- public/index.html -->
+
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+        <title>TODO App</title>
+
+        <!-- Latest compiled and minified CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet"  href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200&display=swap" rel="stylesheet">
+        <!-- JQuery -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+        <!-- Latest compiled and minified JavaScript -->
+       
+
+        <!-- Vue.js -->
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.min.js"></script>
+    </head>
+    <body>
+        <div class="container my-4">
+            <div class="row">
+                <div class="col-2"></div>
+                <div class="col-8">
+                    <h1 class="text-center fs-1">TO-DO LIST</h1>
+                    
+                        <div class="row my-4">    
+                            <form @submit.prevent="searchTask">                
+                              <div class="d-flex bd-highlight mb-4">
+                                <div class="flex-grow-1 bd-highlight bord border bg-light border border-dark">
+                                    <input type="text" class="inp form-control" placeholder="Recherche" v-model="query">
+                                </div>
+                                <div class="p-2 bd-highlight"></div>
+                                <div class="my-auto bd-highlight">
+                                    
+                                        <input type="button" class="btn btn-warning buttonstyle" value="Rechercher">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    
+                    <div class="card my-4  bord p-4 border border-dark">
+                        <ul class="list-group bord ">
+                            <li class="list-group-item border-0">
+                                <div class="row align-items-center">
+                                    <div class="col mx-4">
+                                      <h4>Tâche</h4>
+                                    </div>
+                                    <div class="col">
+                                        
+                                    </div>
+                                    <div class="col">
+                                     <h4>Etat</h4>
+                                    </div>
+                                    <div class="col">
+                                        
+                                    </div>
+                                  </div>
+                                <hr class="bg-dark border-4 border-top border-dark">
+                            </li>
+                            <li class="list-group-item border-0" v-for="task in tasks" :key="index">
+                                <div class="row align-items-center" >
+                                    <div class="col mx-4">
+                                        <h5 :class="{'faite': task.etat === 'fait'}">{{ task.name }}</h5>
+                                    </div>
+                                    <div class="col">
+
+                                    </div>
+                                    <div  class="col">
+                                        <h5 class="text-capitalize"  title="Appuyer pour charger">
+                                            <span @click="changeEtat($index)" class="pointer badge rounded-pill px-2"
+                                           
+                                            :class="{
+                                                'bg-info': task.etat === 'a faire',
+                                                'bg-warning': task.etat === 'en cours',
+                                                'bg-success': task.etat === 'fait',
+                                                'bg-danger': task.etat === 'en retard'}"
+                                            >
+                                                {{ task.etat }}
+                                            </span>
+                                        </h5>
+                                    </div>
+                                    <div class="col">
+                                        <button class="btn btn-xs btn-default" v-on:click="EditTask($index)">
+                                            <i class="fa fa-pencil fs-3" aria-hidden="true"></i>
+                                        </button>
+                                        <button class="btn btn-xs btn-default" v-on:click="deleteTask($index)">
+                                            <i class="fa fa-times fs-3" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    
+                                </div>
+
+                            </li>
+                            <li class="list-group-item border-0 mt-4">
+                                <div class="input-group mt-4">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="button" v-on:click="createTask">
+                                            <i class="fa fa-plus" aria-hidden="true"></i>
+                                        </button>
+                                    </span>
+                                    <input type="text" 
+                                        class="form-control border-0" 
+                                        placeholder="Ajouter une tâche" 
+                                        v-on:keyup.enter = "createTask"
+                                        v-model="newTask.name">
+                                       
+                                </div><!-- /input-group -->
+                            </li>
+                        </ul>
+                    </div>
+                   
+                </div>
+                <div class="col-2"></div>
+
+            </div>
+        </div>
+<style scoped>
+body{
+    background-color: rgb(98, 193, 236);
+}
+    .buttonstyle{
+        height: 45px;
+    }
+    .bord{
+        border-radius: 10px;
+        border-style: solid 2px;
+    }
+    .inp {
+        width: 98%;
+        height: 50px;
+        padding: 0px 20px 0 40px;
+        margin: 8px ;
+        box-sizing: border-box;
+        border: none;
+        border-bottom: 2px solid gray;
+       
+}
+.pointer{
+    cursor: pointer;
+}
+.faite{
+    text-decoration: line-through;
+}
+</style>
+    <script>
+   vm =   new Vue({
+                el: 'body',
+
+                data: {
+                    tasks: [],
+                    newTask: {
+                        name: "",
+                        etat: "a faire"
+                    },
+                    editedTask: null,
+                    etatList: ['a faire','en cours','fait','en retard'],
+                    query: null,
+                    
+                },
+
+                
+                // la fonction permet de lister les tache a chaque fois la page est refresh 
+                created: function() {
+                    this.$http.get('/tasks').then(function(response) {
+                        this.tasks = response.data.items ? response.data.items : []
+                    })
+                },
+
+                methods: {
+                    createTask: function() {
+                        if (this.editedTask === null) {
+                        if (!$.trim(this.newTask.name)) {
+                            this.newTask = {}
+                            return
+                        }
+                        this.$http.put('/tasks', this.newTask).success(function(response) {
+                            
+                           
+                                   this.newTask.id = response.created
+                                   this.tasks.push(this.newTask)
+                                   console.log("Task created!")
+                                   console.log(this.newTask)
+                                   this.newTask = {}
+                               
+                               
+                         
+                        }).error(function(error) {
+                            console.log(error)
+                              });
+                            }
+                            else{
+                                this.tasks[this.editedTask].name = this.newTask.name
+                                this.updateTaskName(this.editedTask)
+                                this.editedTask = null
+                                this.newTask.name = ""
+                                                               
+                            }
+                    },
+
+                    deleteTask: function(index) {
+                        this.$http.delete('/tasks/' + this.tasks[index].id,this.tasks[index].name).success(function(response) {
+                            this.tasks.splice(index, 1)
+                            console.log("Task deleted!")
+                        }).error(function(error) {
+                            console.log(error)
+                        })
+                    },
+
+                    updateTaskName: function(index) {
+                        
+                        fetch('/tasks/edit/'+ this.tasks[this.editedTask].id,
+                         {
+                            method:  'PATCH',
+                            headers: {
+                            'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: this.newTask.name,
+                            })
+                                                                        
+                        })    
+                        .then(response => 
+                        response.json())
+                        .then(data => console.log(data))
+                    
+                    },
+
+                    updateTaskEtat: function(index,etat) {
+                        
+                        fetch('/tasks/edit/'+ this.tasks[index].id,
+                         {
+                            method:  'PATCH',
+                            headers: {
+                            'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                etat: this.tasks[index].etat,
+                            })
+                                                                        
+                        })    
+                        .then(response => 
+                        response.json())
+                        .then(data => console.log(data))
+                    
+                    },
+
+                    EditTask: function(index) {
+                        this.newTask.name = this.tasks[index].name
+                        this.editedTask = index
+                        
+                    },
+
+                    changeEtat: function(index) {
+                     let newIndex = this.etatList.indexOf(this.tasks[index].etat);
+                     if (++newIndex > 3) newIndex = 0;                       
+                     this.tasks[index].etat = this.etatList[newIndex];
+                    this.updateTaskEtat(index,this.tasks[index].etat)
+                     
+                     console.log(this.tasks); 
+                     
+                     
+                    },
+
+                     searchTask:async function() {
+                        this.$http.get(`/tasks/search?name=${this.query}`).then(function(response) {
+                            this.tasks = response.data.items ? response.data.items : []
+                            this.query = null
+                           console.log(response.data);
+                   })
+                    }
+
+                }
+            });
+    </script>
+    </body>
+</html>
